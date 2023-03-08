@@ -1,46 +1,17 @@
 import os
-import pickle
 
 from tensorflow import keras
 from keras.applications import InceptionV3
 from keras.layers import Flatten
-import matplotlib.pyplot as plt
 import numpy as np
 
+from utils.get_last_file import get_last_file
+from utils.load_model_data import load_model_data
 from utils.model_checkpoint import MyModelCheckpoint
+from utils.show_image import show_image
 
 model_path = "./Saved Models/InceptionV3"
 batch_size = 32
-
-
-def show_image(image, title):
-    plt.figure()
-    plt.title(title)
-    plt.imshow(image)
-    plt.axis("off")
-    plt.show()
-
-
-def get_last_file():
-    f = []
-    for (dir_path, dir_names, filenames) in os.walk(model_path):
-        f.extend(filenames)
-        break
-
-    f.sort()
-
-    last_file = f[-1]
-    return last_file.split(".")[0]
-
-
-def load_model_data(mdl_path, opt_path):
-    model = keras.models.load_model(mdl_path)
-
-    with open(opt_path, 'rb') as fp:
-        d = pickle.load(fp)
-        epoch = d['epoch']
-        opt = d['opt']
-        return epoch, model, opt
 
 
 class ModelInceptionV3:
@@ -52,7 +23,7 @@ class ModelInceptionV3:
             input_shape=input_shape
         )
 
-        self.conv_base.trainable = False
+        # self.conv_base.trainable = False
 
         self.model = keras.models.Sequential([
             self.conv_base,
@@ -72,7 +43,7 @@ class ModelInceptionV3:
 
         initial_epoch = 0
 
-        last_file = get_last_file()
+        last_file = get_last_file(model_path)
 
         if last_file == "log":
 
@@ -105,7 +76,7 @@ class ModelInceptionV3:
 
         model.fit(
             self.train_images,
-            validation_data=self.val_images,
+            validation_data=self.test_images,
             initial_epoch=initial_epoch,
             epochs=initial_epoch + 1,
             callbacks=[model_ckpt]
@@ -133,7 +104,8 @@ class ModelInceptionV3:
                 x = int(num / batch_size)
                 y = num % batch_size
 
-                show_image(self.test_images[x][0][y], self.classes[np.argmax(predictions[num])])
+                show_image(self.test_images[x][0][y], "class: {}   prediction: {}".
+                           format(self.classes[self.test_images[x][1][y]], self.classes[np.argmax(predictions[num])]))
 
             else:
                 print("Please enter a correct number")
@@ -146,7 +118,7 @@ class ModelInceptionV3:
         for i in range(len(self.test_images)):
             for j in range(len(self.test_images[i][1])):
 
-                idx = i * 32 + j
+                idx = i * batch_size + j
 
                 label = self.test_images[i][1][j]
                 pred_label = np.argmax(predictions[idx])
@@ -156,4 +128,4 @@ class ModelInceptionV3:
                 else:
                     incorrect += 1
 
-        print('correct: ', correct, 'incorrect: ', incorrect)
+        print('correct: ', correct, 'incorrect: ', incorrect, 'test_accuracy: ', (correct * 1.0) / len(predictions))

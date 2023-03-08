@@ -1,8 +1,11 @@
+import os
 from matplotlib import pyplot as plt
+
+fileName = "log inceptionresnetv2.txt"
 
 
 def show_acc():
-    file = open('./log.txt', "r")
+    file = open(os.path.join('./', fileName), "r")
     s = file.read()
 
     acc = []
@@ -29,7 +32,7 @@ def show_acc():
         if idx == -1:
             break
 
-        nxt = s.find("\n", idx + 14)
+        nxt = s.find(" ", idx + 14)
         t = s[idx + 14 : nxt]
 
         num = float(t)
@@ -46,11 +49,9 @@ def show_acc():
     plt.show()
 
 
-
-
 def show_loss():
 
-    file = open('./log.txt', "r")
+    file = open(os.path.join('./', fileName), "r")
     s = file.read()
 
     loss = []
@@ -68,8 +69,6 @@ def show_loss():
         nxt_space = s.find(" ", idx + 7)
         t = s[idx + 7 : nxt_space]
 
-        print("z = ", z, "t = ", t, "nxt = ", nxt_space)
-
         num = float(t)
         loss.append(num)
         idx = nxt_space
@@ -86,15 +85,13 @@ def show_loss():
         nxt_space = s.find(" ", idx + 11)
         t = s[idx + 11 : nxt_space]
 
-        print("z = ", z, "t = ", t, "nxt = ", nxt_space)
-
         num = float(t)
         val_loss.append(num)
         idx = nxt_space
 
     epochs_range = range(1, len(loss) + 1)
 
-    plt.title('Accuracy')
+    plt.title('Loss')
     plt.xticks(epochs_range)
     plt.plot(epochs_range, loss, 'bo', label='Training loss')
     plt.plot(epochs_range, val_loss, 'b', label='Validation loss')

@@ -3,10 +3,11 @@ import os
 from tensorflow import keras
 from keras.preprocessing.image import ImageDataGenerator
 
-from models.model_inceptionv3 import ModelInceptionV3
+from models.model_inceptionresnetv2 import ModelInceptionResNetV2
+from utils.get_last_file import get_last_file
 from utils.logger import Logger
 
-model_path = "./Saved Models/InceptionV3"
+model_path = "./Saved Models/InceptionResNetV2"
 batch_size = 32
 
 image_width = 150
@@ -17,6 +18,7 @@ val_path = './Dataset/val'
 test_path = './Dataset/test'
 
 training = True
+# training = False
 
 
 if __name__ == "__main__":
@@ -48,7 +50,7 @@ if __name__ == "__main__":
 
     classes = {v: k for k, v in train_images.class_indices.items()}
 
-    modelInceptionV3 = ModelInceptionV3(
+    modelInceptionResNetV2 = ModelInceptionResNetV2(
         train_images=train_images,
         val_images=val_images,
         test_images=test_images,
@@ -56,19 +58,25 @@ if __name__ == "__main__":
         input_shape=(image_width, image_height, 3)
     )
 
-    modelInceptionV3.add_layer(keras.layers.Dense(256, activation='relu'))
-    modelInceptionV3.add_layer(keras.layers.Dropout(.2))
-    modelInceptionV3.add_layer(keras.layers.Dense(len(classes), activation='softmax'))
+    modelInceptionResNetV2.add_layer(keras.layers.Dense(256, activation='relu'))
+    modelInceptionResNetV2.add_layer(keras.layers.Dropout(.2))
+    modelInceptionResNetV2.add_layer(keras.layers.Dense(len(classes), activation='softmax'))
 
-    modelInceptionV3.model.summary()
+    trainable = False
+
+    for layer in modelInceptionResNetV2.conv_base.layers:
+        if layer.name == "block8_10_conv":
+            trainable = True
+
+        layer.trainable = trainable
 
     if training:
         os.makedirs(model_path, exist_ok=True)
         with Logger(os.path.join(model_path, 'log.txt')):
-            modelInceptionV3.train()
-
+            modelInceptionResNetV2.train()
     else:
-        modelInceptionV3.test('model01.h5')
+        last_file = get_last_file(model_path)
+        modelInceptionResNetV2.test(os.path.join(last_file + '.h5'))
 
 
 
