@@ -1,7 +1,7 @@
 import os
 
 from tensorflow import keras
-from keras.applications import InceptionResNetV2
+from keras.applications import Xception
 from keras.layers import Flatten
 import numpy as np
 
@@ -11,14 +11,14 @@ from utils.load_model_data import load_model_data
 from utils.model_checkpoint import MyModelCheckpoint
 from utils.show_image import show_image
 
-model_path = "./Saved Models/InceptionResNetV2"
+model_path = "./Saved Models/Xception"
 batch_size = 32
 
 
-class ModelInceptionResNetV2:
+class ModelXception:
     def __init__(self, train_images, val_images, test_images, input_shape):
 
-        self.conv_base = InceptionResNetV2(
+        self.conv_base = Xception(
             weights="imagenet",
             include_top=False,
             input_shape=input_shape
@@ -74,10 +74,9 @@ class ModelInceptionResNetV2:
             # trainable = False
             #
             # for layer in model.layers:
-            #     if layer.name == "inception_resnet_v2":
-            #
+            #     if layer.name == "xception":
             #         for _layer in layer.layers:
-            #             if _layer.name == "conv2d_195":
+            #             if _layer.name == "block13_sepconv2":
             #                 trainable = True
             #
             #             _layer.trainable = trainable
@@ -139,3 +138,5 @@ class ModelInceptionResNetV2:
 
             else:
                 print("Please enter a correct number")
+
+

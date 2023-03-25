@@ -1,13 +1,14 @@
 import os
 
+import numpy as np
 from tensorflow import keras
-from keras.preprocessing.image import ImageDataGenerator
+from keras.utils import image_dataset_from_directory
 
-from models.model_inceptionresnetv2 import ModelInceptionResNetV2
+from models.model_inceptionv3 import ModelInceptionV3
 from utils.get_last_file import get_last_file
 from utils.logger import Logger
 
-model_path = "./Saved Models/InceptionResNetV2"
+model_path = "./Saved Models/InceptionV3"
 batch_size = 32
 
 image_width = 150
@@ -17,66 +18,56 @@ train_path = './Dataset/train'
 val_path = './Dataset/val'
 test_path = './Dataset/test'
 
-training = True
-# training = False
+# training = True
+training = False
 
 
 if __name__ == "__main__":
 
     image_size = (image_width, image_height)
-    image_gen = ImageDataGenerator(
-        rescale=1 / 255.,
-    )
 
-    train_images = image_gen.flow_from_directory(
+    train_images = image_dataset_from_directory(
         train_path,
-        target_size=image_size,
-        class_mode='sparse',
+        image_size=image_size,
     )
 
-    val_images = image_gen.flow_from_directory(
+    val_images = image_dataset_from_directory(
         val_path,
-        target_size=image_size,
-        class_mode='sparse',
+        image_size=image_size,
         shuffle=False
     )
 
-    test_images = image_gen.flow_from_directory(
+    test_images = image_dataset_from_directory(
         test_path,
-        target_size=image_size,
-        class_mode='sparse',
+        image_size=image_size,
         shuffle=False
     )
 
-    classes = {v: k for k, v in train_images.class_indices.items()}
-
-    modelInceptionResNetV2 = ModelInceptionResNetV2(
+    modelInceptionV3 = ModelInceptionV3(
         train_images=train_images,
         val_images=val_images,
         test_images=test_images,
-        classes=classes,
         input_shape=(image_width, image_height, 3)
     )
 
-    modelInceptionResNetV2.add_layer(keras.layers.Dense(256, activation='relu'))
-    modelInceptionResNetV2.add_layer(keras.layers.Dropout(.2))
-    modelInceptionResNetV2.add_layer(keras.layers.Dense(len(classes), activation='softmax'))
+    modelInceptionV3.add_layer(keras.layers.Dense(256, activation='relu'))
+    modelInceptionV3.add_layer(keras.layers.Dropout(.2))
+    modelInceptionV3.add_layer(keras.layers.Dense(len(train_images.class_names), activation='softmax'))
 
-    trainable = False
-
-    for layer in modelInceptionResNetV2.conv_base.layers:
-        if layer.name == "block8_10_conv":
-            trainable = True
-
-        layer.trainable = trainable
+    # image_batch, labels_batch = next(iter(train_images))
+    # shape = np.expand_dims(image_batch[0], axis=0).shape
+    # modelInceptionV3.model.build(input_shape=shape)
+    # modelInceptionV3.conv_base.summary()
+    # modelInceptionV3.model.summary()
+    # exit(0)
 
     if training:
         os.makedirs(model_path, exist_ok=True)
         with Logger(os.path.join(model_path, 'log.txt')):
-            modelInceptionResNetV2.train()
+            modelInceptionV3.train()
     else:
         last_file = get_last_file(model_path)
-        modelInceptionResNetV2.test(os.path.join(last_file + '.h5'))
+        modelInceptionV3.test(os.path.join(last_file + '.h5'))
 
 
 
