@@ -1,5 +1,5 @@
 import os
-
+import tensorflow as tf
 from tensorflow import keras
 from keras.applications import InceptionResNetV2
 from keras.layers import Flatten
@@ -71,16 +71,16 @@ class ModelInceptionResNetV2:
 
             """Uncomment the following lines after 5 epochs"""
 
-            # trainable = False
-            #
-            # for layer in model.layers:
-            #     if layer.name == "inception_resnet_v2":
-            #
-            #         for _layer in layer.layers:
-            #             if _layer.name == "conv2d_195":
-            #                 trainable = True
-            #
-            #             _layer.trainable = trainable
+            trainable = False
+
+            for layer in model.layers:
+                if layer.name == "inception_resnet_v2":
+
+                    for _layer in layer.layers:
+                        if _layer.name == "conv2d_195":
+                            trainable = True
+
+                        _layer.trainable = trainable
 
             model.compile(
                 optimizer=keras.optimizers.Adam.from_config(opt),
